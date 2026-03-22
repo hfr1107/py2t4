@@ -1,4 +1,4 @@
-name = "jianpian-api"
+name = "py2t4"
 main = "src/entry.py"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["python_workers"]
