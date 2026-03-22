@@ -6,7 +6,7 @@ import hashlib
 from urllib.parse import quote, unquote
 
 # 全局缓存
-_spider_config = null
+_spider_config = None
 _spider_code_cache = {}
 
 # --------------------------
@@ -31,12 +31,12 @@ def _transform_spider_code(code):
 # --------------------------
 # 基础工具方法
 # --------------------------
-def _build_url(base, params=null):
+def _build_url(base, params=None):
     if not params:
         return base
     parts = []
     for k, v in params.items():
-        if v is null:
+        if v is None:
             continue
         parts.append(f"{quote(str(k))}={quote(str(v))}")
     if not parts:
@@ -44,7 +44,7 @@ def _build_url(base, params=null):
     sep = '&' if '?' in base else '?'
     return base + sep + '&'.join(parts)
 
-async def _fetch(url, headers=null, params=null):
+async def _fetch(url, headers=None, params=None):
     full_url = _build_url(url, params)
     h = Headers.new()
     if headers:
@@ -65,7 +65,7 @@ async def _fetch(url, headers=null, params=null):
 # 适配requests接口，完全兼容本地requests使用方式
 class MockRequests:
     @staticmethod
-    async def get(url, headers=null, params=null):
+    async def get(url, headers=None, params=None):
         return await _fetch(url, headers, params)
 requests = MockRequests()
 
@@ -112,12 +112,12 @@ async def _load_spider_from_url(spider_url):
         try:
             resp = await _fetch(spider_url)
             if not resp.ok:
-                return null
+                return None
             code = resp.text
             transformed_code = _transform_spider_code(code)
             _spider_code_cache[url_hash] = transformed_code
         except Exception:
-            return null
+            return None
     # 模拟运行环境
     local_vars = {}
     global_vars = globals().copy()
@@ -130,19 +130,19 @@ async def _load_spider_from_url(spider_url):
         exec(transformed_code, global_vars, local_vars)
         Spider = local_vars.get('Spider')
         if not Spider:
-            return null
+            return None
         spider = Spider()
         if hasattr(spider, 'init'):
             spider.init("")
         return spider
     except Exception as e:
         print(f"加载爬虫失败[{spider_url}]: {str(e)}")
-        return null
+        return None
 
 async def _load_spider_by_name(spider_name):
     config = await _load_spider_config()
     if spider_name not in config:
-        return null
+        return None
     return await _load_spider_from_url(config[spider_name])
 
 # --------------------------
@@ -171,10 +171,10 @@ async def handle_spider_request(spider, url):
     f_val = url.searchParams.get("filter")
 
     try:
-        if wd is not null and wd != "":
+        if wd is not None and wd != "":
             result = await spider.searchContent(wd, quick or "", pg or "1")
             return _json(result)
-        if play is not null:
+        if play is not None:
             if hasattr(spider, 'playerContent'):
                 if spider.playerContent.__code__.co_argcount == 4:
                     result = spider.playerContent(flag or "", play, [])
@@ -221,7 +221,7 @@ async def on_fetch(request, env):
     if path == "/debug" or path.endswith("/debug"):
         return await handle_debug()
     
-    spider = null
+    spider = None
     path_parts = [p for p in path.split("/") if p]
     if not path_parts:
         return _json({
